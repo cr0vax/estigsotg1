@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <ctype.h>
+#include "windows.h"
 
 #define MAX_CELULAS 9
 
@@ -166,6 +167,81 @@ void inicializa_mapa_ficheiro(struct Celula pMapa[], char* pFicheiroMapa)
 
 }
 
+// TODO: inicilializa mapa com base num ficheiro binário
+void inicializa_mapa_ficheiro_bin(struct Celula pMapa[], char* pFicheiroMapa)
+{
+	printf("inicializa mapa ficheiro binário\n");
+	system("pause");
+
+	#define MAX_LIN 80
+	#define CAMPOS 7
+
+	FILE *f;
+	char l[ MAX_LIN ];
+
+	f = fopen( pFicheiroMapa, "rb" );
+	
+	// inicia a linha
+	int iLinha = 0;
+
+	// inicia o contador
+	int iIndice = -1;
+
+	if (f != NULL)
+	{
+		// percorre o ficheiro até encontrar o fim
+		while( fread(l,sizeof(char), MAX_LIN, f) != NULL ){
+
+			// se o resto da divisão do número da linha pelo número de linhas por célula
+			// for igual a 0, quer dizer que é um novo registo
+			if (iLinha % CAMPOS == 0)
+			{
+				// incrementa o indice
+				iIndice = iIndice + 1;
+			}
+
+			// imprime a linha
+			int iResto = iLinha % CAMPOS;
+
+			switch ( iResto )
+			{
+				case 0:	// Descrição
+					strcpy((char*)pMapa[iIndice].descricao, rtrim(l));
+					break;
+				case 1:	// Norte
+					pMapa[iIndice].norte = atoi (l);
+					break;
+				case 2:	// Sul
+					pMapa[iIndice].sul = atoi (l);
+					break;
+				case 3:	// Este
+					pMapa[iIndice].este = atoi (l);
+					break;
+				case 4:	// Oeste
+					pMapa[iIndice].oeste = atoi (l);
+					break;
+				case 5:	// Item
+					pMapa[iIndice].item = atoi (l);
+					break;
+			}
+
+			// incrementa o número da linha
+			iLinha = iLinha + 1;
+		}
+	
+		fclose( f );
+
+		printf("concluiu a inicialização do mapa com base num ficheiro binário\n");
+	}
+	else
+	{
+		printf("Erro a abrir o ficheiro %s",pFicheiroMapa); 
+	}
+	system("pause");
+
+}
+
+
 //Inicializa o mapa da aventura
 //--------------------------------
 //    +------+------+------+
@@ -186,7 +262,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 	if (strlen(pFicheiroMapa) > 1)
 	{
 		// carrega mapa do ficheiro
-		inicializa_mapa_ficheiro(pMapa, pFicheiroMapa);
+		inicializa_mapa_ficheiro_bin(pMapa, pFicheiroMapa);
 	}
 	else
 	{
@@ -271,6 +347,68 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 		pMapa[8].este	= -1;
 		pMapa[8].oeste	= 7;
 		pMapa[8].item	= -1;
+	}
+}
+
+//Converte o mapa para um ficheiro binário
+void converte_mapa()
+{
+	printf("A converter o mapa para binário...");
+	system("pause");
+
+	#define MAX_COL 80				// tamanho máximo da linha		
+
+	FILE *forigem;					// ficheiro de origem
+	FILE *fdestino;					// ficheiro dedestino
+	char l[ MAX_COL ];				// linha
+
+	char* nomeMapaOrigem[100];						// nome do ficheiro do mapa
+	char* nomeMapaDestino[100];
+
+	strcpy((char*) nomeMapaOrigem, "");
+	strcpy((char*) nomeMapaDestino, "");
+
+	//Pede o nome do ficheiro do mapa a converte
+	printf("Nome do mapa a converter:");
+	scanf("%s", nomeMapaOrigem);
+
+	strcpy((char*) nomeMapaDestino, (char*) nomeMapaOrigem);
+
+	//Abre o ficheiro do mapa de origem
+	forigem = fopen( strcat((char*) nomeMapaOrigem, ".txt"), "r");
+
+	//Abre o ficheiro do mapa de destino em binário
+	fdestino = fopen( strcat((char*) nomeMapaDestino, "b.txt"), "wb");
+
+	if (forigem != NULL)
+	{
+		if (fdestino != NULL)
+		{
+			// percorre o ficheiro de origem até encontrar o fim
+			while( fgets(l, MAX_COL, forigem) != NULL )
+			{
+				printf("Dados:%s/n",l);
+				system("pause");
+
+				//grava a linha no ficheiro binário
+				fwrite(l,sizeof(char),MAX_COL,fdestino);
+			}
+
+			fclose(fdestino);
+		}
+		else
+		{
+			printf("Erro a abrir/criar o ficheiro binário do mapa/n"); 
+		}
+
+		fclose(forigem);
+
+		printf("Ficheiro do mapa convertido/n");
+		system("pause");
+	}
+	else
+	{
+		printf("Erro a ler o ficheiro %s/n", nomeMapaOrigem);
 	}
 }
 
@@ -400,6 +538,11 @@ int aceita_comando_jogador(char *sComando, struct Jogador *pJogador, struct Celu
 		iAccao = 101;
 	}
 
+	if ( strcmp(sComando, "B") == 0 ) {					// converte mapa para binário
+
+		iAccao = 102;
+	}
+
 	// retorna o movimento que foi feito
 	return iAccao;
 }
@@ -417,12 +560,34 @@ void movimenta_jogador(int iLocalizacao, struct Jogador *pJogador)
 // Descreve jogador
 void descreve_jogador(struct Jogador *pJogador)
 {
+	//DWORD nCharsWritten;
+	//HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	//COORD pos = {10, 10};
+	//SetConsoleCursorPosition( hStdout, pos );
+
+	//char* msg[500];
+	//strcpy((char*) msg, "+------------------------------\n");
+	//
+	//strcat((char*) msg, "+------------------------------\n");
+	/*strcat((char*) msg, "| DADOS DO JOGADOR\n");
+	strcat((char*) msg, "|\n");
+	strcat((char*) msg, "| Nome   :");
+	strcat((char*) msg, (char*) pJogador->nome);
+	strcat((char*) msg, "\n");
+	strcat((char*) msg, "| Energia:");
+	strcat((char*) msg, (char*) pJogador->energia);
+	strcat((char*) msg, "\n+------------------------------\n");*/
+	//_tprintf ( _T( "%s\n" ), msg );
+	//WriteConsole( hStdout, msg, strlen( msg ), &nCharsWritten, NULL );
+
 	printf("+------------------------------\n");
 	printf("| DADOS DO JOGADOR\n");
 	printf("|\n");
 	printf("| Nome   : %s\n", pJogador->nome);
 	printf("| Energia: %d\n", pJogador->energia);
 	printf("+------------------------------\n");
+
 }
 
 // Descreve monstro
@@ -461,14 +626,13 @@ void descreve_status(struct Jogador *pJogador, struct Monstro *pMonstro, struct 
 {
 	system("cls");							// limpa ecrã
 
-	// descreve jogador
 	descreve_jogador(pJogador);
 
-	printf("+------------------------------\n");
-	printf("| DESCRIÇÃO DA LOCALIZAÇÃO\n");
-	printf("|\n");
-	printf("| %s\n", pMapa[pJogador->localizacao].descricao);
-	printf("+------------------------------\n");
+	printf("+------------------------------+\n");
+	printf("|   DESCRIÇÃO DA LOCALIZAÇÃO   |\n");
+	printf("|                              |\n");
+	printf("| %s                       |\n", pMapa[pJogador->localizacao].descricao);
+	printf("+------------------------------+\n");
 
 	// se o modo superUser estiver activado mostra o status do monstro
 	if (blnSuperUser == true)
@@ -493,7 +657,7 @@ int lutar(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMap
 		iHandyCap = 10;
 	}
 
-	fwrite(
+
 	// descreve status
 		system("cls");
 		printf("+------------------------------\n");
@@ -615,7 +779,7 @@ bool apanha_tesouro(struct Jogador *pJogador, struct Celula pMapa[])
 // valida os comandos disponíveis para o jogador
 char* valida_comandos_disponiveis(struct Celula *pMapa)
 {
-	int MAX_CHARS = 100;
+	int MAX_CHARS = 200;
 	char* sComandosDisponiveis;
 	sComandosDisponiveis = (char *) malloc( MAX_CHARS );
 	strcpy((char*) sComandosDisponiveis, "+------------------------------\n");
@@ -636,6 +800,8 @@ char* valida_comandos_disponiveis(struct Celula *pMapa)
 		strcat((char*) sComandosDisponiveis, "| C - Carregar Jogo\n");
 	// Gravar Jogo
 		strcat((char*) sComandosDisponiveis, "| G - Gravar Jogo\n");
+	// Converte Mapa para binário
+		strcat((char*) sComandosDisponiveis, "| B - Converter mapa para binário\n");
 
 	return (char*) sComandosDisponiveis;
 }
@@ -878,14 +1044,22 @@ void comandos_funcionais(int iAccao, struct Jogador *pJogador, struct Monstro *p
 		printf("Foi identificada a acção 100 grava jogo\n");
 		system("pause");
 		grava_jogo(pJogador, pMonstro, pMapa); 
-	};
+	}
 	// carrega jogo
 	if (iAccao == 101) {
 		printf("Foi identificada a acção 101 carrega jogo\n");
 		system("pause");
 		carrega_jogo(pJogador, pMonstro, pMapa);
-	};
+	}
+
+	// Converte mapa
+	if (iAccao == 102) {
+		printf("Foi identificada a acção 102 converte mapa\n");
+		system("pause");
+		converte_mapa();
+	}
 }
+
 
 //-------------------------------------------------------------------------------------------------
 //	MAIN
@@ -976,7 +1150,7 @@ int main(int argc, char* argv[])
 		{
 			printf("Comando funcional\n");
 			system("pause");
-			//TODO: chama função de comandos funcionais
+	
 			comandos_funcionais(iAccao, &jogador, &monstro, mapa);
 
 			inicializa_mapa_teste (mapa);
