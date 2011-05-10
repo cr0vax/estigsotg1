@@ -268,7 +268,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 	{
 		//Construção da sala 0
 		//----------------------
-		strcpy((char*) pMapa[0].descricao, "Sala 0");
+		strcpy((char*) pMapa[0].descricao, "Sala 0 ih dgh dfgihd fgoierhyg dfgjh dflg e s er fjsdhgkj dhg jhiuh ijhd fgiudfg dig digh sodgfhs dfohsd fosdhf sdoufh sdfsdh fisduhf sfh sdfuhsd fusdh fisfh sdfiuhs fiushdf");
 		pMapa[0].norte	= -1;
 		pMapa[0].sul	= -1;
 		pMapa[0].este	= 1;
@@ -705,16 +705,44 @@ void descreve_monstro(struct Monstro *pMonstro, struct Celula pMapa[], bool blnS
 // Desenha no ecrã o que ocorre no jogo
 void descreve_status(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMapa[], bool blnSuperUser)
 {
+	int MAX_LARGURA = 73;
 	system("cls");							// limpa ecrã
 
 	descreve_jogador(pJogador);
 
 	printf("\n");
-	printf("+------------------------------+\n");
-	printf("|   DESCRIÇÃO DA LOCALIZAÇÃO   |\n");
-	printf("|                              |\n");
-	printf("| %s                       |\n", pMapa[pJogador->localizacao].descricao);
-	printf("+------------------------------+\n");
+	printf("+---------------------------------------------------------------------------+\n");
+	printf("|                       DESCRIÇÃO DA LOCALIZAÇÃO                            |\n");
+	printf("|                                                                           |\n");
+	printf("| ");
+	
+	// imprime a descrição em conjuntos de 73 caracteres
+
+	int i = 0;
+	char sLocalizacao[200];
+
+	strcpy((char*) sLocalizacao, (char*) pMapa[pJogador->localizacao].descricao);
+
+	while( sLocalizacao[i] != '\0')
+	{
+		printf("%c", sLocalizacao[i]);
+
+		i++;
+
+		if ( (i % MAX_LARGURA) == 0)
+		{
+			printf(" |\n| ");
+		}
+	}
+
+	for (int x = 0; x < MAX_LARGURA - (i % MAX_LARGURA); x++)
+	{
+		printf(" ");
+	}
+
+	printf(" |\n");
+
+	printf("+---------------------------------------------------------------------------+\n");
 
 	// se o modo superUser estiver activado mostra o status do monstro
 	if (blnSuperUser == true)
@@ -1269,7 +1297,7 @@ int main(int argc, char* argv[])
 	// terminou o jogo
 	system("cls");
 	printf("____ _ _  _    ___  ____     _ ____ ____ ____   /\n");
-	printf("|___ | |\/|    |  \ |  |     | |  | | __ |  |  / \n");
+	printf("|___ | |\\/|    |  \\ |  |     | |  | | __ |  |  / \n");
 	printf("|    | |  |    |__/ |__|    _| |__| |__] |__| .  \n");
                                                  
 	system( "pause" );
