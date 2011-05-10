@@ -167,7 +167,7 @@ void inicializa_mapa_ficheiro(struct Celula pMapa[], char* pFicheiroMapa)
 
 }
 
-// TODO: inicilializa mapa com base num ficheiro binário
+// Inicilializa mapa com base num ficheiro binário
 void inicializa_mapa_ficheiro_bin(struct Celula pMapa[], char* pFicheiroMapa)
 {
 	printf("inicializa mapa ficheiro binário\n");
@@ -318,7 +318,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 		pMapa[5].sul	= -1;
 		pMapa[5].este	= -1;
 		pMapa[5].oeste	= 4;
-		pMapa[5].item	= -1;
+		pMapa[5].item	= 0;
 
 
 		//Construção da sala 6
@@ -560,34 +560,76 @@ void movimenta_jogador(int iLocalizacao, struct Jogador *pJogador)
 // Descreve jogador
 void descreve_jogador(struct Jogador *pJogador)
 {
-	//DWORD nCharsWritten;
-	//HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	//COORD pos = {10, 10};
-	//SetConsoleCursorPosition( hStdout, pos );
-
-	//char* msg[500];
-	//strcpy((char*) msg, "+------------------------------\n");
-	//
-	//strcat((char*) msg, "+------------------------------\n");
-	/*strcat((char*) msg, "| DADOS DO JOGADOR\n");
-	strcat((char*) msg, "|\n");
-	strcat((char*) msg, "| Nome   :");
-	strcat((char*) msg, (char*) pJogador->nome);
-	strcat((char*) msg, "\n");
-	strcat((char*) msg, "| Energia:");
-	strcat((char*) msg, (char*) pJogador->energia);
-	strcat((char*) msg, "\n+------------------------------\n");*/
-	//_tprintf ( _T( "%s\n" ), msg );
-	//WriteConsole( hStdout, msg, strlen( msg ), &nCharsWritten, NULL );
-
-	printf("+------------------------------\n");
+	/*printf("+------------------------------\n");
 	printf("| DADOS DO JOGADOR\n");
 	printf("|\n");
 	printf("| Nome   : %s\n", pJogador->nome);
 	printf("| Energia: %d\n", pJogador->energia);
-	printf("+------------------------------\n");
+	printf("+------------------------------\n");*/
 
+	int nLinhaInicio = 0;				//linha da consola
+	int nColunaInicio = 7;				//coluna da consola
+
+	HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	/*Guarda os atributos currentes do texto para reposiçãoo no final*/
+	CONSOLE_SCREEN_BUFFER_INFO strConsoleInfo;
+	GetConsoleScreenBufferInfo( hStdout, &strConsoleInfo );
+
+	//define a posição do cursor na consula e imprime naquela posição
+	COORD pos1 = {nColunaInicio, nLinhaInicio};
+	SetConsoleCursorPosition( hStdout, pos1 );
+	printf("********************************");
+	//-----------------------------
+	
+	COORD pos2 = {nColunaInicio + 8, nLinhaInicio + 1};
+	SetConsoleCursorPosition( hStdout, pos2 );
+
+	/*Texto e fundo com cores*/
+	SetConsoleTextAttribute( hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY  | BACKGROUND_INTENSITY );
+
+	printf("DADOS DO JOGADOR");
+	//-----------------------------
+
+	COORD pos3 = {nColunaInicio, nLinhaInicio + 2};
+	SetConsoleCursorPosition( hStdout, pos3 );
+
+	SetConsoleTextAttribute( hStdout, strConsoleInfo.wAttributes );
+
+	printf("*------------------------------*");
+	//-----------------------------
+
+	COORD pos4 = {nColunaInicio, nLinhaInicio + 3};
+	SetConsoleCursorPosition( hStdout, pos4 );
+	
+	SetConsoleTextAttribute( hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
+
+	printf("* Nome      : %s", pJogador->nome);
+	//----------------------------
+
+	COORD pos5 = {nColunaInicio, nLinhaInicio + 4};
+	SetConsoleCursorPosition( hStdout, pos5 );
+	printf("* Energia   : %d", pJogador->energia);
+	//----------------------------
+
+	COORD pos6 = {nColunaInicio, nLinhaInicio + 5};
+	SetConsoleCursorPosition( hStdout, pos6 );
+
+	SetConsoleTextAttribute( hStdout, strConsoleInfo.wAttributes );
+
+	printf("*");
+	//----------------------------
+
+	COORD pos7 = {nColunaInicio, nLinhaInicio + 6};
+	SetConsoleCursorPosition( hStdout, pos7 );
+	printf("*------------------------------*");
+
+	COORD pos8 = {nColunaInicio, nLinhaInicio + 7};
+	SetConsoleCursorPosition( hStdout, pos8 );
+	printf("********************************");
+
+	/*Repoe os atributos iniciais*/
+	SetConsoleTextAttribute( hStdout, strConsoleInfo.wAttributes );
 }
 
 // Descreve monstro
@@ -598,27 +640,66 @@ void descreve_monstro(struct Monstro *pMonstro, struct Celula pMapa[], bool blnS
 	printf("|\n");
 	printf("| %s   Energia:%d", pMonstro->nome, pMonstro->energia);
 
+	int nLinhaInicio = 0;				//linha da consola
+	int nColunaInicio = 38;				//coluna da consola
+
+	HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	//define a posição do cursor na consula e imprime naquela posição
+	COORD pos1 = {nColunaInicio, nLinhaInicio};
+	SetConsoleCursorPosition( hStdout, pos1 );
+	printf("********************************");
+
+	COORD pos2 = {nColunaInicio + 4, nLinhaInicio + 1};
+	SetConsoleCursorPosition( hStdout, pos2 );
+	printf("DESCRIÇÃO DOS MONSTROS");
+
+	COORD pos3 = {nColunaInicio, nLinhaInicio + 2};
+	SetConsoleCursorPosition( hStdout, pos3 );
+	printf("*------------------------------*");
+
+	COORD pos4 = {nColunaInicio, nLinhaInicio + 3};
+	SetConsoleCursorPosition( hStdout, pos4 );
+	printf("* Nome       : %s", pMonstro->nome);
+
+	COORD pos5 = {nColunaInicio, nLinhaInicio + 4};
+	SetConsoleCursorPosition( hStdout, pos5 );
+
+	// se o monstro estiver morto informa que morreu
+	if (pMonstro->energia <= 0)
+	{
+		printf("* Energia    : Morto");
+	}
+	else
+	{
+		printf("* Energia    : %d", pMonstro->energia);
+	}
+
 	// se o modo super user estiver activado mostra a sala do monstro
 	if ( blnSuperUser == true )
 	{
-		// escreve a designação da sala
-		// se o monstro estiver morto informa que morreu
-		if (pMonstro->energia <= 0)
+		// escreve a designação da sala se o monstro estiver vivo
+		if (pMonstro->energia >= 0)
 		{
-			printf("   Morto\n");
-		}
-		else
-		{
-			printf("   Localização: %s\n", pMapa[pMonstro->localizacao].descricao);
+			COORD pos6 = {nColunaInicio, nLinhaInicio + 5};
+			SetConsoleCursorPosition( hStdout, pos6 );
+			printf("* Localização: %s", pMapa[pMonstro->localizacao].descricao);
 		}
 	}
 	else
 	{
-		// muda de linha
-		printf("\n");
+		COORD pos6 = {nColunaInicio, nLinhaInicio + 5};
+		SetConsoleCursorPosition( hStdout, pos6 );
+		printf("*", pMapa[pMonstro->localizacao].descricao);
 	}
 
-	printf("+------------------------------\n");
+	COORD pos7 = {nColunaInicio, nLinhaInicio + 6};
+	SetConsoleCursorPosition( hStdout, pos7 );
+	printf("*------------------------------*");
+
+	COORD pos8 = {nColunaInicio, nLinhaInicio + 7};
+	SetConsoleCursorPosition( hStdout, pos8 );
+	printf("********************************");
 }
 
 // Desenha no ecrã o que ocorre no jogo
@@ -628,6 +709,7 @@ void descreve_status(struct Jogador *pJogador, struct Monstro *pMonstro, struct 
 
 	descreve_jogador(pJogador);
 
+	printf("\n");
 	printf("+------------------------------+\n");
 	printf("|   DESCRIÇÃO DA LOCALIZAÇÃO   |\n");
 	printf("|                              |\n");
@@ -1082,7 +1164,10 @@ int main(int argc, char* argv[])
 	//--------------------------------
 	//Chama a função para inicializar o jogador
 	//--------------------------------
+
 	struct Jogador jogador;
+	//jogador = ( struct Jogador )malloc( sizeof ( struct Jogador ) );
+	//struct jsw_node *rn = ( struct jsw_node*)malloc(sizeof(struct jsw_node));
 	char * nomeJogador[50];
 	// solicita o nome do jogador
 	printf( "Indique o nome do jogador:" );
