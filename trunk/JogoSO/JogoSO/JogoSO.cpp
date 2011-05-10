@@ -12,7 +12,9 @@
 #include <ctype.h>
 #include "windows.h"
 
-#define MAX_CELULAS 9
+#define MAX_CELULAS 9			// número máximo de células do mapa
+#define MAX_COL 400				// tamanho máximo da linha		
+
 
 //-------------------------------------------------------------------------------------------------
 //	ESTRUTURAS
@@ -173,7 +175,7 @@ void inicializa_mapa_ficheiro_bin(struct Celula pMapa[], char* pFicheiroMapa)
 	printf("inicializa mapa ficheiro binário\n");
 	system("pause");
 
-	#define MAX_LIN 80
+	#define MAX_LIN 400
 	#define CAMPOS 7
 
 	FILE *f;
@@ -203,10 +205,15 @@ void inicializa_mapa_ficheiro_bin(struct Celula pMapa[], char* pFicheiroMapa)
 			// imprime a linha
 			int iResto = iLinha % CAMPOS;
 
+			if (iResto > 0) {int a = atoi(l);}
+
 			switch ( iResto )
 			{
 				case 0:	// Descrição
-					strcpy((char*)pMapa[iIndice].descricao, rtrim(l));
+					//strcpy((char*)pMapa[iIndice].descricao, rtrim(l));
+					strcpy((char*)pMapa[iIndice].descricao, l);
+					char strTeste[400];
+					strcpy((char*)strTeste, (char*) pMapa[iIndice].descricao);
 					break;
 				case 1:	// Norte
 					pMapa[iIndice].norte = atoi (l);
@@ -268,7 +275,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 	{
 		//Construção da sala 0
 		//----------------------
-		strcpy((char*) pMapa[0].descricao, "Sala 0 ih dgh dfgihd fgoierhyg dfgjh dflg e s er fjsdhgkj dhg jhiuh ijhd fgiudfg dig digh sodgfhs dfohsd fosdhf sdoufh sdfsdh fisduhf sfh sdfuhsd fusdh fisfh sdfiuhs fiushdf");
+		strcpy((char*) pMapa[0].descricao, "Salddddddddddddddddddddddddddddddddddddddddddddddddd");
 		pMapa[0].norte	= -1;
 		pMapa[0].sul	= -1;
 		pMapa[0].este	= 1;
@@ -356,8 +363,6 @@ void converte_mapa()
 	printf("A converter o mapa para binário...");
 	system("pause");
 
-	#define MAX_COL 80				// tamanho máximo da linha		
-
 	FILE *forigem;					// ficheiro de origem
 	FILE *fdestino;					// ficheiro dedestino
 	char l[ MAX_COL ];				// linha
@@ -387,11 +392,11 @@ void converte_mapa()
 			// percorre o ficheiro de origem até encontrar o fim
 			while( fgets(l, MAX_COL, forigem) != NULL )
 			{
-				printf("Dados:%s/n",l);
+				printf("Dados:%s\n",l);
 				system("pause");
 
 				//grava a linha no ficheiro binário
-				fwrite(l,sizeof(char),MAX_COL,fdestino);
+				fwrite(l, sizeof(char), MAX_COL, fdestino);
 			}
 
 			fclose(fdestino);
@@ -635,11 +640,11 @@ void descreve_jogador(struct Jogador *pJogador)
 // Descreve monstro
 void descreve_monstro(struct Monstro *pMonstro, struct Celula pMapa[], bool blnSuperUser)
 {
-	printf("+------------------------------\n");
+	/*printf("+------------------------------\n");
 	printf("| DESCRIÇÃO DOS MONSTROS\n");
 	printf("|\n");
 	printf("| %s   Energia:%d", pMonstro->nome, pMonstro->energia);
-
+*/
 	int nLinhaInicio = 0;				//linha da consola
 	int nColunaInicio = 38;				//coluna da consola
 
@@ -699,7 +704,7 @@ void descreve_monstro(struct Monstro *pMonstro, struct Celula pMapa[], bool blnS
 
 	COORD pos8 = {nColunaInicio, nLinhaInicio + 7};
 	SetConsoleCursorPosition( hStdout, pos8 );
-	printf("********************************");
+	printf("********************************\n");
 }
 
 // Desenha no ecrã o que ocorre no jogo
@@ -719,11 +724,11 @@ void descreve_status(struct Jogador *pJogador, struct Monstro *pMonstro, struct 
 	// imprime a descrição em conjuntos de 73 caracteres
 
 	int i = 0;
-	char sLocalizacao[200];
+	char sLocalizacao[ MAX_COL ];
 
 	strcpy((char*) sLocalizacao, (char*) pMapa[pJogador->localizacao].descricao);
 
-	while( sLocalizacao[i] != '\0')
+	while( sLocalizacao[i] != '\n')
 	{
 		printf("%c", sLocalizacao[i]);
 
@@ -735,12 +740,26 @@ void descreve_status(struct Jogador *pJogador, struct Monstro *pMonstro, struct 
 		}
 	}
 
-	for (int x = 0; x < MAX_LARGURA - (i % MAX_LARGURA); x++)
+	int x = 0;
+	//printf("i:%d, largura:%d, conta:%d", i, MAX_LARGURA, (i % MAX_LARGURA));
+
+	for (x; x <= (MAX_LARGURA - ((i) % MAX_LARGURA)); x++)
 	{
 		printf(" ");
 	}
 
-	printf(" |\n");
+	printf("|\n");
+	//printf("|\n");
+	//HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	////define a posição do cursor na consula e imprime naquela posição
+	//COORD pos1 = {76, 13};
+	//SetConsoleCursorPosition( hStdout, pos1 );
+	//printf("|");
+
+	//COORD pos2 = {76, 12};
+	//SetConsoleCursorPosition( hStdout, pos2 );
+	//printf("|\n");
 
 	printf("+---------------------------------------------------------------------------+\n");
 
@@ -770,11 +789,13 @@ int lutar(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMap
 
 	// descreve status
 		system("cls");
+
+		descreve_jogador(pJogador);
+		descreve_monstro(pMonstro, pMapa, blnSuperUser);
+
 		printf("+------------------------------\n");
 		printf("| COMBATE\n");
 		printf("+------------------------------\n");
-		descreve_jogador(pJogador);
-		descreve_monstro(pMonstro, pMapa, blnSuperUser);
 
 	// imprime legenda
 		printf("     @  - 1\n");
@@ -952,9 +973,6 @@ void carrega_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Cel
 {
 	printf("carrega jogo\n");
 	
-	// lê cada linha do ficheiro
-	#define MAX_COL 80
-		
 	FILE *f;
 	char l[ MAX_COL ];
 
@@ -1052,8 +1070,6 @@ void grava_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celul
 {
 	printf("grava jogo\n");
 
-	// define as variaveis iniciais
-	#define MAX_COL 80				// tamanho máximo da linha
 	FILE *f;						// ficheiro
 	char l[ MAX_COL ];				// linha
 	char* sResposta[2];
@@ -1170,6 +1186,12 @@ void comandos_funcionais(int iAccao, struct Jogador *pJogador, struct Monstro *p
 	}
 }
 
+// testa o final do jogo
+bool testa_fim_jogo(struct Jogador *pJogador)
+{
+	return !(pJogador->energia > 0 && !(pJogador->flg_tem_tesouro == 0 && pJogador->localizacao == 0));
+}
+
 
 //-------------------------------------------------------------------------------------------------
 //	MAIN
@@ -1208,6 +1230,7 @@ int main(int argc, char* argv[])
 	//--------------------------------
 	struct Celula mapa[MAX_CELULAS];				//Cria um array de células para o mapa do jogo
 	inicializa_mapa( mapa, (char *) ficheiroMapa );
+	inicializa_mapa_teste (mapa);
 	system("pause");
 
 	//--------------------------------
@@ -1221,7 +1244,7 @@ int main(int argc, char* argv[])
 	//--------------------------------
 	
 	//Enquanto não for Fim de Jogo 
-	while (jogador.energia > 0 && jogador.flg_tem_tesouro == -1)
+	while (testa_fim_jogo(&jogador) == false)
 	{
 		int iAccao = -1;
 
@@ -1266,7 +1289,6 @@ int main(int argc, char* argv[])
 	
 			comandos_funcionais(iAccao, &jogador, &monstro, mapa);
 
-			inicializa_mapa_teste (mapa);
 			inicializa_jogador_teste (&jogador);
 			inicializa_monstro_teste (&monstro);
 		}
@@ -1288,6 +1310,16 @@ int main(int argc, char* argv[])
 				printf("Apanhou o tesouro! %d\n", jogador.flg_tem_tesouro);
 				system("pause");
 			}
+
+			////  testa fim
+			//bool fim = testa_saida_com_tesouro(&jogador, mapa);
+
+			//if (fim == true)
+			//{
+			//	printf("Apanhou o tesouro! %d\n", jogador.flg_tem_tesouro);
+			//	system("pause");
+			//}
+
 
 			// valida localizações para luta
 			valida_condicoes_luta(&jogador, &monstro, mapa, blnSuperUser);
