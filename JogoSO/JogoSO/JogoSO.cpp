@@ -275,7 +275,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 	{
 		//Construção da sala 0
 		//----------------------
-		strcpy((char*) pMapa[0].descricao, "Salddddddddddddddddddddddddddddddddddddddddddddddddd");
+		strcpy((char*) pMapa[0].descricao, "Salddddddddddddddddddddddddddddddddddddddddddddddddd\n");
 		pMapa[0].norte	= -1;
 		pMapa[0].sul	= -1;
 		pMapa[0].este	= 1;
@@ -284,7 +284,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 
 		//Construção da sala 1
 		//----------------------
-		strcpy((char*) pMapa[1].descricao, "Sala 1");
+		strcpy((char*) pMapa[1].descricao, "Sala 1\n");
 		pMapa[1].norte	= -1;
 		pMapa[1].sul	= 4;
 		pMapa[1].este	= -1;
@@ -293,7 +293,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 
 		//Construção da sala 2
 		//----------------------
-		strcpy((char*) pMapa[2].descricao, "Sala 2");
+		strcpy((char*) pMapa[2].descricao, "Sala 2\n");
 		pMapa[2].norte	= -1;
 		pMapa[2].sul	= 5;
 		pMapa[2].este	= -1;
@@ -302,7 +302,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 
 		//Construção da sala 3
 		//----------------------
-		strcpy((char*) pMapa[3].descricao, "Sala 3");
+		strcpy((char*) pMapa[3].descricao, "Sala 3\n");
 		pMapa[3].norte	= -1;
 		pMapa[3].sul	= 6;
 		pMapa[3].este	= 4;
@@ -311,7 +311,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 
 		//Construção da sala 4
 		//----------------------
-		strcpy((char*) pMapa[4].descricao, "Sala 4");
+		strcpy((char*) pMapa[4].descricao, "Sala 4\n");
 		pMapa[4].norte	= 1;
 		pMapa[4].sul	= -1;
 		pMapa[4].este	= 5;
@@ -320,7 +320,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 
 		//Construção da sala 5
 		//----------------------
-		strcpy((char*) pMapa[5].descricao, "Sala 5");
+		strcpy((char*) pMapa[5].descricao, "Sala 5\n");
 		pMapa[5].norte	= 2;
 		pMapa[5].sul	= -1;
 		pMapa[5].este	= -1;
@@ -330,7 +330,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 
 		//Construção da sala 6
 		//----------------------
-		strcpy((char*) pMapa[6].descricao, "Sala 6");
+		strcpy((char*) pMapa[6].descricao, "Sala 6\n");
 		pMapa[6].norte	= 3;
 		pMapa[6].sul	= -1;
 		pMapa[6].este	= 7;
@@ -339,7 +339,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 
 		//Construção da sala 7
 		//----------------------
-		strcpy((char*) pMapa[7].descricao, "Sala 7");
+		strcpy((char*) pMapa[7].descricao, "Sala 7\n");
 		pMapa[7].norte	= -1;
 		pMapa[7].sul	= -1;
 		pMapa[7].este	= 8;
@@ -348,7 +348,7 @@ void inicializa_mapa(struct Celula pMapa[], char* pFicheiroMapa)
 
 		//Construção da sala 8
 		//----------------------
-		strcpy((char*) pMapa[8].descricao, "Sala 8");
+		strcpy((char*) pMapa[8].descricao, "Sala 8\n");
 		pMapa[8].norte	= -1;
 		pMapa[8].sul	= -1;
 		pMapa[8].este	= -1;
@@ -989,7 +989,8 @@ void carrega_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Cel
 			printf("entrou no ciclo\n");
 
 			// se a linha for igual a mapa
-			if (strcmp(strupr(trim(l)),":MAPA") == 0)
+			//if (strcmp(strupr(trim(l)),":MAPA") == 0)
+			if (strcmp(strupr(l),":MAPA") == 0)
 			{
 				printf("encontrou a string :MAPA\n");
 				system("pause");
@@ -998,7 +999,8 @@ void carrega_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Cel
 				for (int i = 0; i < MAX_CELULAS; i++)
 				{
 					fgets(l, MAX_COL, f);
-					strcpy((char*) pMapa[i].descricao, trim(l));		// nome da célula
+					//strcpy((char*) pMapa[i].descricao, trim(l));		// nome da célula
+					strcpy((char*) pMapa[i].descricao, l);		// nome da célula
 					
 					fgets(l, MAX_COL, f);
 					pMapa[i].norte = atoi(l);							// norte
@@ -1018,13 +1020,15 @@ void carrega_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Cel
 			}
 
 			// se a linha for igual a jogador
-			if (strcmp(strupr(trim(l)),":JOGADOR") == 0)
+			//if (strcmp(strupr(trim(l)),":JOGADOR") == 0)
+			if (strcmp(strupr(l),":JOGADOR") == 0)
 			{
 				printf("encontrou a string :JOGADOR\n");
 				system("pause");
 				
 				fgets(l, MAX_COL, f);
-				strcpy((char*) pJogador->nome, trim(l));				// nome do jogador
+				//strcpy((char*) pJogador->nome, trim(l));				// nome do jogador
+				strcpy((char*) pJogador->nome, l);				// nome do jogador
 
 				fgets(l, MAX_COL, f);
 				pJogador->energia = atoi (l);							// energia
@@ -1037,13 +1041,15 @@ void carrega_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Cel
 			}
 
 			// se a linha for igual a monstro
-			if (strcmp(strupr(trim(l)),":MONSTRO") == 0)
+			//if (strcmp(strupr(trim(l)),":MONSTRO") == 0)
+			if (strcmp(strupr(l),":MONSTRO") == 0)
 			{
 				printf("encontrou a string :MONSTRO\n");
 				system("pause");
 
 				fgets(l, MAX_COL, f);
-				strcpy((char*) pMonstro->nome, trim(l));				// nome do monstro
+				//strcpy((char*) pMonstro->nome, trim(l));				// nome do monstro
+				strcpy((char*) pMonstro->nome, l);				// nome do monstro
 
 				fgets(l, MAX_COL, f);
 				pMonstro->energia = atoi (l);							// energia
@@ -1135,24 +1141,30 @@ void grava_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celul
 		// grava cada uma das células do mapa
 		for (int i = 0; i < MAX_CELULAS; i++)
 		{
-			strcpy(l, trim((char*) pMapa[i].descricao));				// nome da célula
+			//strcpy(l, trim((char*) pMapa[i].descricao));				// nome da célula
+			strcpy(l, (char*) pMapa[i].descricao);				// nome da célula
 			strcat(l, "\n");
 			fputs(l, f);
 			
 			itoa(pMapa[i].norte, l, 10);								// norte
-			fputs(strcat(trim(l), "\n"), f);
+			//fputs(strcat(trim(l), "\n"), f);
+			fputs(strcat(l, "\n"), f);
 			
 			itoa(pMapa[i].sul, l, 10);									// sul
-			fputs(strcat(trim(l), "\n"), f);
+			//fputs(strcat(trim(l), "\n"), f);
+			fputs(strcat(l, "\n"), f);
 			
 			itoa(pMapa[i].este, l, 10);									// este
+			//fputs(strcat(trim(l), "\n"), f);
 			fputs(strcat(trim(l), "\n"), f);
 			
 			itoa(pMapa[i].oeste, l, 10);								// oeste
-			fputs(strcat(trim(l), "\n"), f);
+			//fputs(strcat(trim(l), "\n"), f);
+			fputs(strcat(l, "\n"), f);
 			
 			itoa(pMapa[i].item, l, 10);									// item
-			fputs(strcat(trim(l), "\n"), f);
+			//fputs(strcat(trim(l), "\n"), f);
+			fputs(strcat(l, "\n"), f);
 		}
 
 		// fecha o ficheiro
