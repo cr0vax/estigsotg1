@@ -1,0 +1,32 @@
+﻿Build started 11-05-2011 22:02:34.
+     1>Project "D:\My Docs\Documentos\ESTIG\Ano 2\2 Semestre\SO\TG1_Final\JogoSODLL\JogoSODLL\JogoSODLL.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\JogoSODLL.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         All outputs are up-to-date.
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W0 /WX- /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _USRDLL /D _WINDLL /D _UNICODE /D UNICODE /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\JogoSODLL.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt JogoSODLL.cpp
+         JogoSODLL.cpp
+       ResourceCompile:
+         All outputs are up-to-date.
+       ManifestResourceCompile:
+         All outputs are up-to-date.
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\My Docs\Documentos\ESTIG\Ano 2\2 Semestre\SO\TG1_Final\JogoSODLL\Debug\JogoSODLL.dll" /INCREMENTAL /NOLOGO /DEF:".\JogoSODLL.def" /MANIFEST /ManifestFile:"Debug\JogoSODLL.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\My Docs\Documentos\ESTIG\Ano 2\2 Semestre\SO\TG1_Final\JogoSODLL\Debug\JogoSODLL.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\My Docs\Documentos\ESTIG\Ano 2\2 Semestre\SO\TG1_Final\JogoSODLL\Debug\JogoSODLL.lib" /MACHINE:X86 /DLL Debug\JogoSODLL.res
+         Debug\JogoSODLL.dll.embed.manifest.res
+         Debug\JogoSODLL.obj
+         Debug\stdafx.obj
+            Creating library D:\My Docs\Documentos\ESTIG\Ano 2\2 Semestre\SO\TG1_Final\JogoSODLL\Debug\JogoSODLL.lib and object D:\My Docs\Documentos\ESTIG\Ano 2\2 Semestre\SO\TG1_Final\JogoSODLL\Debug\JogoSODLL.exp
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"Debug\JogoSODLL.dll.embed.manifest" /manifest Debug\JogoSODLL.dll.intermediate.manifest "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\Include\Manifest\dpiaware.manifest"
+         All outputs are up-to-date.
+       LinkEmbedManifest:
+         All outputs are up-to-date.
+         JogoSODLL.vcxproj -> D:\My Docs\Documentos\ESTIG\Ano 2\2 Semestre\SO\TG1_Final\JogoSODLL\Debug\JogoSODLL.dll
+       FinalizeBuildStatus:
+         Deleting file "Debug\JogoSODLL.unsuccessfulbuild".
+         Touching "Debug\JogoSODLL.lastbuildstate".
+     1>Done Building Project "D:\My Docs\Documentos\ESTIG\Ano 2\2 Semestre\SO\TG1_Final\JogoSODLL\JogoSODLL\JogoSODLL.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:08.35
