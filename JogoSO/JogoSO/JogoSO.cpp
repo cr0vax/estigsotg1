@@ -440,7 +440,7 @@ int aceita_comando_jogador(char *sComando, struct Jogador *pJogador, struct Celu
 		iAccao = 100;
 	}
 
-	if ( strcmp(sComando, "S") == 0 ) {
+	if ( strcmp(sComando, "0") == 0 ) {
 		iAccao = 101;
 	}
 	// retorna o movimento que foi feito
@@ -823,7 +823,7 @@ char* valida_comandos_disponiveis(struct Celula *pMapa)
 	// Gravar Jogo
 		strcat((char*) sComandosDisponiveis, "| G - Gravar Jogo\n");
 	// sai do Jogo
-		strcat((char*) sComandosDisponiveis, "| S - Sair do Jogo\n");
+		strcat((char*) sComandosDisponiveis, "| 0 - Sair do Jogo\n");
 
 	return (char*) sComandosDisponiveis;
 }
@@ -1160,6 +1160,28 @@ void inicia_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celu
 
 	// terminou o jogo
 	system("cls");
+
+	if (pJogador->energia > 0)
+	{
+		// ganhou
+		printf("+-------------------------------------------------------------------------+\n");
+		printf("| Sais rapidamente do restaurante levando contigo o grandioso jogador. A  |\n");
+		printf("| notícia espalhou-se rapidamente por tudo o mundo e o seu já se encontra |\n");
+		printf("| inundado de charters…Cumpriste o teu objectivo e salvastes a época do   |\n");
+		printf("| clube!                                                                  |\n");
+		printf("+-------------------------------------------------------------------------+\n");
+		
+	}
+	else
+	{
+		// perdeu
+		printf("+-------------------------------------------------------------------------+\n");
+		printf("| Infelizmente não foste capaz de salvar o grande jogador chinês!         |\n");
+		printf("| Os charters de chineses nunca virão a ser o que se esperava!            |\n");
+		printf("+-------------------------------------------------------------------------+\n");
+	}
+
+	printf("\n\n");
 	printf("____ _ _  _    ___  ____     _ ____ ____ ____   /\n");
 	printf("|___ | |\\/|    |  \\ |  |     | |  | | __ |  |  / \n");
 	printf("|    | |  |    |__/ |__|    _| |__| |__] |__| .  \n");
