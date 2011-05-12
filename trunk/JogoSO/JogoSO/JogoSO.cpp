@@ -436,20 +436,13 @@ int aceita_comando_jogador(char *sComando, struct Jogador *pJogador, struct Celu
 		iAccao = pMapa[iLocalizacaoJogador].oeste;
 	}
 
-	if ( strcmp(sComando, "G") == 0 ) {					// carregar jogo
+	if ( strcmp(sComando, "G") == 0 ) {
 		iAccao = 100;
 	}
 
-	if ( strcmp(sComando, "C") == 0 ) {					// gravar jogo
-		// gravar jogo
+	if ( strcmp(sComando, "S") == 0 ) {
 		iAccao = 101;
 	}
-
-	if ( strcmp(sComando, "B") == 0 ) {					// converte mapa para binário
-
-		iAccao = 102;
-	}
-
 	// retorna o movimento que foi feito
 	return iAccao;
 }
@@ -676,17 +669,6 @@ void descreve_status(struct Jogador *pJogador, struct Monstro *pMonstro, struct 
 	}
 
 	printf("|\n");
-	//printf("|\n");
-	//HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	////define a posição do cursor na consula e imprime naquela posição
-	//COORD pos1 = {76, 13};
-	//SetConsoleCursorPosition( hStdout, pos1 );
-	//printf("|");
-
-	//COORD pos2 = {76, 12};
-	//SetConsoleCursorPosition( hStdout, pos2 );
-	//printf("|\n");
 
 	printf("+---------------------------------------------------------------------------+\n");
 
@@ -838,12 +820,10 @@ char* valida_comandos_disponiveis(struct Celula *pMapa)
 	// Opções funcionais
 	// adiciona return
 		strcat((char*) sComandosDisponiveis, "|\n");
-	// Carregar Jogo
-		strcat((char*) sComandosDisponiveis, "| C - Carregar Jogo\n");
 	// Gravar Jogo
 		strcat((char*) sComandosDisponiveis, "| G - Gravar Jogo\n");
-	// Converte Mapa para binário
-		strcat((char*) sComandosDisponiveis, "| B - Converter mapa para binário\n");
+	// sai do Jogo
+		strcat((char*) sComandosDisponiveis, "| S - Sair do Jogo\n");
 
 	return (char*) sComandosDisponiveis;
 }
@@ -876,91 +856,6 @@ void valida_condicoes_luta(struct Jogador *pJogador, struct Monstro *pMonstro, s
 			// descreve status
 			iResultado = lutar(pJogador, pMonstro, pMapa, blnSuperUser);
 		}
-	}
-}
-
-// carrega um jogo previamente gravado
-void carrega_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMapa[])
-{
-	printf("A carregar o jogo...\n");
-	
-	FILE *f;
-	char l[ MAX_COL ];
-
-	// carrega o jogo com o nome do jogador
-	char* sNomeFicheiro[50];
-	strcpy((char*) sNomeFicheiro, (char*) pJogador->nome);
-	f = fopen( strcat((char*) sNomeFicheiro, ".txt"), "rb" );
-
-	if ( f != NULL )
-	{
-		// lê o conteúdo do ficheiro
-		while( fread(l, sizeof(char), MAX_COL, f) != NULL ){
-
-			// se a linha for igual a mapa
-			if (strcmp(strupr(l),":MAPA") == 0)
-			{
-
-				// carrega cada uma das células do mapa
-				for (int i = 0; i < MAX_CELULAS; i++)
-				{
-					fread(l, sizeof(char), MAX_COL, f);
-					strcpy((char*) pMapa[i].descricao, l);		// nome da célula
-					
-					fread(l, sizeof(char), MAX_COL, f);
-					pMapa[i].norte = atoi(l);							// norte
-
-					fread(l, sizeof(char), MAX_COL, f);
-					pMapa[i].sul = atoi(l);								// sul
-
-					fread(l, sizeof(char), MAX_COL, f);
-					pMapa[i].este = atoi(l);							// este
-
-					fread(l, sizeof(char), MAX_COL, f);
-					pMapa[i].oeste = atoi(l);							// oeste
-
-					fread(l, sizeof(char), MAX_COL, f);
-					pMapa[i].item = atoi(l);							// item
-				}
-			}
-
-			if (strcmp(strupr(l),":JOGADOR") == 0)
-			{
-				fread(l, sizeof(char), MAX_COL, f);
-				strcpy((char*) pJogador->nome, l);				// nome do jogador
-
-				fread(l, sizeof(char), MAX_COL, f);
-				pJogador->energia = atoi (l);							// energia
-
-				fread(l, sizeof(char), MAX_COL, f);
-				pJogador->localizacao = atoi (l);						// localizacao
-
-				fread(l, sizeof(char), MAX_COL, f);
-				pJogador->flg_tem_tesouro = atoi (l);					// tesouro
-			}
-
-			if (strcmp(strupr(l),":MONSTRO") == 0)
-			{
-				fread(l, sizeof(char), MAX_COL, f);
-				strcpy((char*) pMonstro->nome, l);				// nome do monstro
-
-				fread(l, sizeof(char), MAX_COL, f);
-				pMonstro->energia = atoi (l);							// energia
-
-				fread(l, sizeof(char), MAX_COL, f);
-				pMonstro->localizacao = atoi (l);						// localizacao
-			}
-		}
-
-		fclose( f );
-
-		printf("Jogo carregado com sucesso!\n");
-		system("pause");
-	}
-	else
-	{
-		printf("Ficheiro de jogo inválido!\n");
-		system("pause");
 	}
 }
 
@@ -1059,6 +954,126 @@ void grava_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celul
 	}
 }
 
+// testa o final do jogo
+bool testa_fim_jogo(struct Jogador *pJogador)
+{
+	return !(pJogador->energia > 0 && !(pJogador->flg_tem_tesouro == 0 && pJogador->localizacao == 0));
+}
+
+// novo jogo
+void novo_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMapa[], bool blnSuperUser, char* pFicheiroMapa)
+{
+	//--------------------------------
+	//Chama a função para inicializar o jogador
+	//--------------------------------
+
+	//jogador = ( struct Jogador )malloc( sizeof ( struct Jogador ) );
+	//struct jsw_node *rn = ( struct jsw_node*)malloc(sizeof(struct jsw_node));
+	char * nomeJogador[50];
+	// solicita o nome do jogador
+	printf( "Indique o nome do jogador:" );
+	scanf( "%s", &nomeJogador );
+
+	inicializa_jogador(pJogador, (char *) nomeJogador, blnSuperUser );
+
+	//--------------------------------
+	//Chama a função para inicializar o mapa
+	//--------------------------------
+	inicializa_mapa( pMapa, (char *) pFicheiroMapa );
+	inicializa_mapa_teste (pMapa);
+	system("pause");
+
+	//--------------------------------
+	//Chama a função para inicializar o monstro
+	//--------------------------------
+	inicializa_monstro( pMonstro );
+}
+
+// carrega um jogo previamente gravado
+void carrega_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMapa[])
+{
+	printf("A carregar o jogo...\n");
+	
+	FILE *f;
+	char l[ MAX_COL ];
+
+	// carrega o jogo com o nome do jogador
+	char* sNomeFicheiro[50];
+	strcpy((char*) sNomeFicheiro, (char*) pJogador->nome);
+	f = fopen( strcat((char*) sNomeFicheiro, ".txt"), "rb" );
+
+	if ( f != NULL )
+	{
+		// lê o conteúdo do ficheiro
+		while( fread(l, sizeof(char), MAX_COL, f) != NULL ){
+
+			// se a linha for igual a mapa
+			if (strcmp(strupr(l),":MAPA") == 0)
+			{
+
+				// carrega cada uma das células do mapa
+				for (int i = 0; i < MAX_CELULAS; i++)
+				{
+					fread(l, sizeof(char), MAX_COL, f);
+					strcpy((char*) pMapa[i].descricao, l);		// nome da célula
+					
+					fread(l, sizeof(char), MAX_COL, f);
+					pMapa[i].norte = atoi(l);							// norte
+
+					fread(l, sizeof(char), MAX_COL, f);
+					pMapa[i].sul = atoi(l);								// sul
+
+					fread(l, sizeof(char), MAX_COL, f);
+					pMapa[i].este = atoi(l);							// este
+
+					fread(l, sizeof(char), MAX_COL, f);
+					pMapa[i].oeste = atoi(l);							// oeste
+
+					fread(l, sizeof(char), MAX_COL, f);
+					pMapa[i].item = atoi(l);							// item
+				}
+			}
+
+			if (strcmp(strupr(l),":JOGADOR") == 0)
+			{
+				fread(l, sizeof(char), MAX_COL, f);
+				strcpy((char*) pJogador->nome, l);				// nome do jogador
+
+				fread(l, sizeof(char), MAX_COL, f);
+				pJogador->energia = atoi (l);							// energia
+
+				fread(l, sizeof(char), MAX_COL, f);
+				pJogador->localizacao = atoi (l);						// localizacao
+
+				fread(l, sizeof(char), MAX_COL, f);
+				pJogador->flg_tem_tesouro = atoi (l);					// tesouro
+			}
+
+			if (strcmp(strupr(l),":MONSTRO") == 0)
+			{
+				fread(l, sizeof(char), MAX_COL, f);
+				strcpy((char*) pMonstro->nome, l);				// nome do monstro
+
+				fread(l, sizeof(char), MAX_COL, f);
+				pMonstro->energia = atoi (l);							// energia
+
+				fread(l, sizeof(char), MAX_COL, f);
+				pMonstro->localizacao = atoi (l);						// localizacao
+			}
+		}
+
+		fclose( f );
+
+		printf("Jogo carregado com sucesso!\n");
+		system("pause");
+	}
+	else
+	{
+		printf("Ficheiro de jogo inválido!\n");
+		system("pause");
+	}
+}
+
 // executa os comandos funcionais
 void comandos_funcionais(int iAccao, struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMapa[])
 {
@@ -1066,23 +1081,120 @@ void comandos_funcionais(int iAccao, struct Jogador *pJogador, struct Monstro *p
 	if (iAccao == 100) {
 		grava_jogo(pJogador, pMonstro, pMapa); 
 	}
-	// carrega jogo
+	// sai do jogo
 	if (iAccao == 101) {
-		carrega_jogo(pJogador, pMonstro, pMapa);
-	}
-
-	// Converte mapa
-	if (iAccao == 102) {
-		converte_ficheiro();
+		printf("sai do jogo\n");
+		system("pause");
+		exit(EXIT_SUCCESS);
 	}
 }
 
-// testa o final do jogo
-bool testa_fim_jogo(struct Jogador *pJogador)
+// inicia jogo
+void inicia_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMapa[], bool blnSuperUser)
 {
-	return !(pJogador->energia > 0 && !(pJogador->flg_tem_tesouro == 0 && pJogador->localizacao == 0));
+	//--------------------------------
+	// Inicia o jogo
+	//--------------------------------
+	
+	//Enquanto não for Fim de Jogo 
+	while (testa_fim_jogo(pJogador) == false)
+	{
+		int iAccao = -1;
+
+		while (iAccao < 0)
+		{
+			//	Descrever a Localização do Jogador
+			descreve_status(pJogador, pMonstro, pMapa, blnSuperUser);
+
+			// valida se o monstro encontrou o jogador, se encontrou inicia a luta
+			valida_condicoes_luta(pJogador, pMonstro, pMapa, blnSuperUser);
+		
+			//	Aceitar Comando do Jogador
+			char* sComando[2];
+			strcpy((char*) sComando, "");
+
+			// validar/imprimir comandos disponíveis
+			char* sComandosDisponiveis = valida_comandos_disponiveis(&pMapa[pJogador->localizacao]);
+			printf("%s\n", sComandosDisponiveis);
+
+			// solicita comando ao jogador
+			printf("Insira um Comando: ");
+			scanf( "%s", sComando );
+
+			iAccao = aceita_comando_jogador((char*) sComando, pJogador, pMapa);
+
+			// se o comando for inválido dá mensagem de erro
+			if (iAccao < 0)
+			{
+				printf("Comando inválido!\n");
+				system("pause");
+			}
+		}
+
+		// se a acção for igual ou superior a 100 é uma acção funcional
+		if (iAccao >= 100)
+		{
+			comandos_funcionais(iAccao, pJogador, pMonstro, pMapa);
+		}
+		else
+		{
+			//	Movimentar Monstro
+			movimenta_monstro(pMonstro, pMapa);
+
+			//	Movimentar Jogador
+			movimenta_jogador(iAccao, pJogador);
+
+			//  apanha o tesouro
+			bool tesouro = apanha_tesouro(pJogador, pMapa);
+
+			if (tesouro == true)
+			{
+				//printf("Apanhou o tesouro! %d\n", jogador.flg_tem_tesouro);
+				//system("pause");
+			}
+
+			// valida localizações para luta
+			valida_condicoes_luta(pJogador, pMonstro, pMapa, blnSuperUser);
+		}
+	}
+
+	// terminou o jogo
+	system("cls");
+	printf("____ _ _  _    ___  ____     _ ____ ____ ____   /\n");
+	printf("|___ | |\\/|    |  \\ |  |     | |  | | __ |  |  / \n");
+	printf("|    | |  |    |__/ |__|    _| |__| |__] |__| .  \n");
+                                                 
+	system( "pause" );
 }
 
+// menu principal
+void menu_principal()
+{
+
+	system("cls");
+
+	// escreve a história do jogo
+	printf("+-------------------------------------------------------------------------+\n");
+	printf("| Estamos no ano de 2010 e o Sport Lisboa e Benfica está a sofrer uma das |\n");
+	printf("| piores épocas de sempre. A sua única esperança é conseguir contratar o  |\n");
+	printf("| maior jogador chinês da actualidade de modo ganhar vantagem na luta     |\n");
+	printf("| contra os seus mais directos adversários no campeonato. Para isso é     |\n");
+	printf("| necessário resgatar o jogador que se encontra preso pelo seu agente num |\n");
+	printf("| restaurante chinês. A tarefa não vai ser fácil…mas não é impossível!    |\n");
+	printf("+-------------------------------------------------------------------------+\n");
+	
+	// adiciona uns espaços antes do menú
+	printf("\n\n");
+
+	// escreve o menu
+	printf("+---------------------------------+\n");
+	printf("| 1 - Novo Jogo                   |\n");
+	printf("| 2 - Carregar Jogo               |\n");
+	printf("| 3 - Converter mapa para binário |\n");
+	printf("|                                 |\n");
+	printf("| 0 - Sair                        |\n");
+	printf("+---------------------------------+\n");
+}
 
 // The one and only application object
 
@@ -1121,106 +1233,51 @@ int main(int argc, char * argv[], char * envp[])
 			validaSwitches(argc, argv, &blnSuperUser, (char*) ficheiroMapa);
 
 			//--------------------------------
-			//Chama a função para inicializar o jogador
-			//--------------------------------
-
-			struct Jogador jogador;
-			char * nomeJogador[50];
-
-			// solicita o nome do jogador
-			printf( "Indique o nome do jogador:" );
-			scanf( "%s", &nomeJogador );
-
-			inicializa_jogador(&jogador, (char *) nomeJogador, blnSuperUser );
-
-			//--------------------------------
-			//Chama a função para inicializar o mapa
+			// Define as estruturas a serem utilizadas no jogo
 			//--------------------------------
 			struct Celula mapa[MAX_CELULAS];				//Cria um array de células para o mapa do jogo
-			inicializa_mapa( mapa, (char *) ficheiroMapa );
-
-			//--------------------------------
-			//Chama a função para inicializar o monstro
-			//--------------------------------
+			struct Jogador jogador;
 			struct Monstro monstro;
-			inicializa_monstro( &monstro );
-
-			//--------------------------------
-			// Inicia o jogo
-			//--------------------------------
 	
-			//Enquanto não for Fim de Jogo 
-			while (testa_fim_jogo(&jogador) == false)
+			//--------------------------------
+			// Chama a função que imprime o menu principal
+			//--------------------------------
+			int iOpcao = -1;
+			bool blnOpcaoMenu = false;
+
+			while (iOpcao != 0)
 			{
-				int iAccao = -1;
+				// imprime menu
+				menu_principal();
 
-				while (iAccao < 0)
+				// solicita a opção ao jogador
+				printf("Escolha um opção:");
+				scanf( "%d", &iOpcao );
+
+				// Valida a opção escolhida
+				switch ( iOpcao )
 				{
-					//	Descrever a Localização do Jogador
-					descreve_status(&jogador, &monstro, mapa, blnSuperUser);
-
-					// valida se o monstro encontrou o jogador, se encontrou inicia a luta
-					valida_condicoes_luta(&jogador, &monstro, mapa, blnSuperUser);
-		
-					//	Aceitar Comando do Jogador
-					char* sComando[2];
-					strcpy((char*) sComando, "");
-
-					// validar/imprimir comandos disponíveis
-					char* sComandosDisponiveis = valida_comandos_disponiveis(&mapa[jogador.localizacao]);
-					printf("%s\n", sComandosDisponiveis);
-
-					// solicita comando ao jogador
-					printf("Insira um Comando: ");
-					scanf( "%s", sComando );
-
-					iAccao = aceita_comando_jogador((char*) sComando, &jogador, mapa);
-
-					// se o comando for inválido dá mensagem de erro
-					if (iAccao < 0)
-					{
-						printf("Comando inválido!\n");
-						system("pause");
-					}
-				}
-
-				// se a acção for igual ou superior a 100 é uma acção funcional
-				if (iAccao >= 100)
-				{
-	
-					comandos_funcionais(iAccao, &jogador, &monstro, mapa);
-				}
-				else
-				{
-					//	Movimentar Monstro
-					movimenta_monstro(&monstro, mapa);
-
-					//	Movimentar Jogador
-					movimenta_jogador(iAccao, &jogador);
-
-					//  apanha o tesouro
-					bool tesouro = apanha_tesouro(&jogador, mapa);
-
-					if (tesouro == true)
-					{
-						//printf("Apanhou o tesouro! %d\n", jogador.flg_tem_tesouro);
-						//system("pause");
-					}
-
-					// valida localizações para luta
-					valida_condicoes_luta(&jogador, &monstro, mapa, blnSuperUser);
+					case 0:	// Sai do jogo
+						printf("Saiu do jogo");
+						break;
+					case 1:	// Novo jogo
+						novo_jogo(&jogador, &monstro, mapa, blnSuperUser, (char*) ficheiroMapa);
+						inicia_jogo(&jogador, &monstro, mapa, blnSuperUser);
+						break;
+					case 2:	// Carregar jogo
+						// solicita õ nome do jogo
+						printf("Qual o nome do jogo?:");
+						scanf( "%s", &jogador.nome );
+						carrega_jogo(&jogador, &monstro, mapa);
+						inicia_jogo(&jogador, &monstro, mapa, blnSuperUser);
+						break;
+					case 3:	// Converter mapa para binário
+						converte_ficheiro();
+						break;
 				}
 			}
 
-			// terminou o jogo
-			system("cls");
-			printf("____ _ _  _    ___  ____     _ ____ ____ ____   /\n");
-			printf("|___ | |\\/|    |  \\ |  |     | |  | | __ |  |  / \n");
-			printf("|    | |  |    |__/ |__|    _| |__| |__] |__| .  \n");
-                                                 
-			system( "pause" );
 			return 0;
-
 		}
 	}
 	else
