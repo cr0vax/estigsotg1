@@ -980,8 +980,8 @@ void novo_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula
 	//Chama a função para inicializar o mapa
 	//--------------------------------
 	inicializa_mapa( pMapa, (char *) pFicheiroMapa );
-	inicializa_mapa_teste (pMapa);
-	system("pause");
+	//inicializa_mapa_teste (pMapa);
+	//system("pause");
 
 	//--------------------------------
 	//Chama a função para inicializar o monstro
