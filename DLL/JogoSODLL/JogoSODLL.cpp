@@ -100,8 +100,6 @@ __declspec( dllexport ) void WINAPI converte_ficheiro()
 			// percorre o ficheiro de origem até encontrar o fim
 			while( fgets(l, MAX_COL, forigem) != NULL )
 			{
-				printf("Dados:%s\n",l);
-				system("pause");
 
 				//grava a linha no ficheiro binário
 				fwrite(l, sizeof(char), MAX_COL, fdestino);

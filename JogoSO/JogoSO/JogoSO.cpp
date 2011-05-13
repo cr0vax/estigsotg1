@@ -1,5 +1,7 @@
-// JogoSO.cpp : Defines the entry point for the console application.
-//
+//Descritivo:Primeiro trabalho de grupo da disciplina de SO
+//Titulo:DLL para o jogo de aventura
+//Autores: Luís Costa Nº6032, Bruno Moreira Nº6170
+
 
 #include "stdafx.h"
 #include "string.h"
@@ -397,15 +399,11 @@ void movimenta_monstro(struct Monstro *pMonstro, struct Celula pMapa[])
 		if (iSul   >= 0) { iPos++; iSaidas[iPos]=iSul; }
 		if (iOeste >= 0) { iPos++; iSaidas[iPos]=iOeste; }
 
-		//printf("Saídas: Norte:%d || Sul:%d || Este:%d || Oeste:%d\n", iNorte, iSul, iEste, iOeste);
-		//printf("Localização do Monstro Antes:%d\n", pMonstro->localizacao);
-
 		// faz random das saídas existentes
 		int iNovaLocalizacao = iSaidas[GetRandomNumber(0, iPos)];
 
 		// altera a localização do monstro
 		pMonstro->localizacao = iNovaLocalizacao;
-		//printf("Localização do Monstro Depois:%d\n", pMonstro->localizacao);
 	}
 
 }
@@ -1083,7 +1081,7 @@ void comandos_funcionais(int iAccao, struct Jogador *pJogador, struct Monstro *p
 	}
 	// sai do jogo
 	if (iAccao == 101) {
-		printf("sai do jogo\n");
+		printf("Jogo terminado!\n");
 		system("pause");
 		exit(EXIT_SUCCESS);
 	}
@@ -1199,7 +1197,7 @@ void menu_principal()
 	printf("+-------------------------------------------------------------------------+\n");
 	printf("| Estamos no ano de 2010 e o Sport Lisboa e Benfica está a sofrer uma das |\n");
 	printf("| piores épocas de sempre. A sua única esperança é conseguir contratar o  |\n");
-	printf("| maior jogador chinês da actualidade de modo ganhar vantagem na luta     |\n");
+	printf("| maior jogador chinês da actualidade de modo a ganhar vantagem na luta   |\n");
 	printf("| contra os seus mais directos adversários no campeonato. Para isso é     |\n");
 	printf("| necessário resgatar o jogador que se encontra preso pelo seu agente num |\n");
 	printf("| restaurante chinês. A tarefa não vai ser fácil…mas não é impossível!    |\n");
@@ -1282,17 +1280,20 @@ int main(int argc, char * argv[], char * envp[])
 					case 0:	// Sai do jogo
 						printf("Saiu do jogo");
 						break;
+
 					case 1:	// Novo jogo
 						novo_jogo(&jogador, &monstro, mapa, blnSuperUser, (char*) ficheiroMapa);
 						inicia_jogo(&jogador, &monstro, mapa, blnSuperUser);
 						break;
+
 					case 2:	// Carregar jogo
-						// solicita õ nome do jogo
+						// solicita o nome do jogo
 						printf("Qual o nome do jogo?:");
 						scanf( "%s", &jogador.nome );
 						carrega_jogo(&jogador, &monstro, mapa);
 						inicia_jogo(&jogador, &monstro, mapa, blnSuperUser);
 						break;
+
 					case 3:	// Converter mapa para binário
 						converte_ficheiro();
 						break;
