@@ -18,8 +18,15 @@
 //include da DLL
 #include "JogoSODLL.h"
 
+#define LAST_LINE 24
+
 #define MAX_CELULAS 9			// número máximo de células do mapa
-#define MAX_COL 400				// tamanho máximo da linha	
+#define MAX_COL 400				// tamanho máximo da linha
+
+#define MAX_THREADS 20
+#define MAX_FILE_NAME 100
+
+HANDLE hMutexJogo;		// mutex para controlar o jogo
 
 //-------------------------------------------------------------------------------------------------
 //	ESTRUTURAS
@@ -55,6 +62,22 @@ struct Monstro
 
 };
 
+//Estrutura onde são armazenados os dados de cada thread
+struct ThreadData{
+	int id;
+	char fileName[ MAX_FILE_NAME ];
+};
+
+struct argThreadMonstro{
+	struct Celula *pMapa;
+	struct Monstro *pMonstro;
+};
+
+struct argThreadJogador{
+	struct Celula *pMapa;
+	struct Jogador *pJogador;
+	struct Monstro *pMonstro;
+};
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -373,41 +396,6 @@ void inicializa_monstro(struct Monstro *pMonstro)
 	pMonstro->localizacao	= 4;
 }
 
-// movimenta o monstro
-void movimenta_monstro(struct Monstro *pMonstro, struct Celula pMapa[])
-{
-	// faz random para decidir se movimenta ou não
-	int iMovimenta = GetRandomNumber(0, 1);
-	
-	// é para movimentar
-	if ( iMovimenta == 1 && pMonstro->localizacao != -1)
-	{
-		// verifica quais as saídas existentes na localização actual do monstro
-		int iLocalizacaoActual = pMonstro->localizacao;
-		
-		int iEste = pMapa[iLocalizacaoActual].este;
-		int iNorte = pMapa[iLocalizacaoActual].norte;
-		int iSul = pMapa[iLocalizacaoActual].sul;
-		int iOeste = pMapa[iLocalizacaoActual].oeste;
-
-		// adiciona as entradas com valor maior ou igual a 0 a um array
-		unsigned int iSaidas[4];
-		int iPos = -1;
-
-		if (iEste  >= 0) { iPos++; iSaidas[iPos]=iEste; }
-		if (iNorte >= 0) { iPos++; iSaidas[iPos]=iNorte; }
-		if (iSul   >= 0) { iPos++; iSaidas[iPos]=iSul; }
-		if (iOeste >= 0) { iPos++; iSaidas[iPos]=iOeste; }
-
-		// faz random das saídas existentes
-		int iNovaLocalizacao = iSaidas[GetRandomNumber(0, iPos)];
-
-		// altera a localização do monstro
-		pMonstro->localizacao = iNovaLocalizacao;
-	}
-
-}
-
 // Aceita comando do jogador
 int aceita_comando_jogador(char *sComando, struct Jogador *pJogador, struct Celula pMapa[])
 {
@@ -443,16 +431,6 @@ int aceita_comando_jogador(char *sComando, struct Jogador *pJogador, struct Celu
 	}
 	// retorna o movimento que foi feito
 	return iAccao;
-}
-
-// Movimenta ao jogador para a localização pretendida
-void movimenta_jogador(int iLocalizacao, struct Jogador *pJogador)
-{
-	// validar se o comando recebido está nos comandos disponíveis
-	if (iLocalizacao >= 0) {
-		// movimenta jogador
-		pJogador->localizacao = iLocalizacao;
-	}
 }
 
 // Descreve jogador
@@ -602,7 +580,7 @@ void descreve_monstro(struct Monstro *pMonstro, struct Celula pMapa[], bool blnS
 			printf("* ");
 
 			SetConsoleTextAttribute( hStdout, FOREGROUND_RED | FOREGROUND_INTENSITY);
-			printf("Localização: %s", pMapa[pMonstro->localizacao].descricao);
+			printf("Localização: %d", pMonstro->localizacao);
 		}
 	}
 	else
@@ -623,10 +601,14 @@ void descreve_monstro(struct Monstro *pMonstro, struct Celula pMapa[], bool blnS
 	COORD pos8 = {nColunaInicio, nLinhaInicio + 7};
 	SetConsoleCursorPosition( hStdout, pos8 );
 	printf("********************************\n");
+
+	// repõe o cursor na posição de inserção de comando
+	COORD pos9 = {19, LAST_LINE};
+	SetConsoleCursorPosition( hStdout, pos9 );
 }
 
 // Desenha no ecrã o que ocorre no jogo
-void descreve_status(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMapa[], bool blnSuperUser)
+void descreve_status(struct Jogador *pJogador, struct Celula pMapa[], bool blnSuperUser)
 {
 	int MAX_LARGURA = 73;
 	system("cls");							// limpa ecrã
@@ -659,7 +641,6 @@ void descreve_status(struct Jogador *pJogador, struct Monstro *pMonstro, struct 
 	}
 
 	int x = 0;
-	//printf("i:%d, largura:%d, conta:%d", i, MAX_LARGURA, (i % MAX_LARGURA));
 
 	for (x; x <= (MAX_LARGURA - ((i) % MAX_LARGURA)); x++)
 	{
@@ -671,13 +652,15 @@ void descreve_status(struct Jogador *pJogador, struct Monstro *pMonstro, struct 
 	printf("+---------------------------------------------------------------------------+\n");
 
 	// se o modo superUser estiver activado mostra o status do monstro
+
+	/* TODO
 	if (blnSuperUser == true)
 	{
 		descreve_monstro(pMonstro, pMapa, blnSuperUser);
 	}
 
 	printf("\n\n\n\n\n\n");
-	
+	*/
 }
 
 // Simula a luta entre jogador e monstro
@@ -1087,73 +1070,213 @@ void comandos_funcionais(int iAccao, struct Jogador *pJogador, struct Monstro *p
 	}
 }
 
+// movimenta o monstro
+void movimenta_monstro(struct Monstro *pMonstro, struct Celula pMapa[])
+{
+
+	// faz random para decidir se movimenta ou não
+	int iMovimenta = GetRandomNumber(0, 1);
+	
+	// é para movimentar
+	if ( iMovimenta == 1 && pMonstro->localizacao != -1)
+	{
+		// verifica quais as saídas existentes na localização actual do monstro
+		int iLocalizacaoActual = pMonstro->localizacao;
+		
+		int iEste = pMapa[iLocalizacaoActual].este;
+		int iNorte = pMapa[iLocalizacaoActual].norte;
+		int iSul = pMapa[iLocalizacaoActual].sul;
+		int iOeste = pMapa[iLocalizacaoActual].oeste;
+
+		// adiciona as entradas com valor maior ou igual a 0 a um array
+		unsigned int iSaidas[4];
+		int iPos = -1;
+
+		if (iEste  >= 0) { iPos++; iSaidas[iPos]=iEste; }
+		if (iNorte >= 0) { iPos++; iSaidas[iPos]=iNorte; }
+		if (iSul   >= 0) { iPos++; iSaidas[iPos]=iSul; }
+		if (iOeste >= 0) { iPos++; iSaidas[iPos]=iOeste; }
+
+		// faz random das saídas existentes
+		int iNovaLocalizacao = iSaidas[GetRandomNumber(0, iPos)];
+
+		// altera a localização do monstro
+		pMonstro->localizacao = iNovaLocalizacao;
+	}
+
+}
+
+// Movimenta ao jogador para a localização pretendida
+void movimenta_jogador(int iLocalizacao, struct Jogador *pJogador)
+{
+	WaitForSingleObject( hMutexJogo,INFINITE );
+
+	// validar se o comando recebido está nos comandos disponíveis
+	if (iLocalizacao >= 0) {
+		// movimenta jogador
+		pJogador->localizacao = iLocalizacao;
+	}
+
+	ReleaseMutex(hMutexJogo);
+}
+
+DWORD WINAPI threadMonstro( LPVOID lpParam ) 
+{
+	struct Monstro *ppMonstro;
+	struct Celula *ppMapa;
+	
+	ppMonstro = ((struct argThreadMonstro*) lpParam)->pMonstro;
+	ppMapa = ((struct argThreadMonstro*) lpParam)->pMapa;
+
+	while (ppMonstro->energia > 0)
+	{
+		WaitForSingleObject( hMutexJogo,INFINITE );
+
+		movimenta_monstro(ppMonstro, ppMapa);
+
+		descreve_monstro(ppMonstro, ppMapa, true);
+
+		ReleaseMutex(hMutexJogo);
+
+		//printf("Aqui-------------------------\n");
+		Sleep(10000);
+	}
+
+	return 0;
+}
+
+DWORD WINAPI threadJogador( LPVOID lpParam ) 
+{
+	struct Jogador *ppJogador;
+	struct Monstro *ppMonstro;
+	struct Celula *ppMapa;
+	
+	ppJogador = ((struct argThreadJogador*) lpParam)->pJogador;
+	ppMonstro = ((struct argThreadJogador*) lpParam)->pMonstro;
+	ppMapa = ((struct argThreadJogador*) lpParam)->pMapa;
+
+	int iAccao = -1;
+
+	while ( testa_fim_jogo(ppJogador) == false )
+	{
+		WaitForSingleObject( hMutexJogo,INFINITE );
+
+		//	Descrever a Localização do Jogador
+		descreve_status(ppJogador, ppMapa, true);
+
+		//	Aceitar Comando do Jogador
+		char* sComando[2];
+		strcpy((char*) sComando, "");
+
+		// validar/imprimir comandos disponíveis
+		//char* sComandosDisponiveis = valida_comandos_disponiveis(&pMapa[pJogador->localizacao]);
+		char* sComandosDisponiveis = valida_comandos_disponiveis(&ppMapa[ppJogador->localizacao]);
+		printf("%s\n", sComandosDisponiveis);
+
+		HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+
+		//define a posição do cursor na consula e imprime naquela posição
+		COORD pos1 = {0, LAST_LINE};
+		SetConsoleCursorPosition( hStdout, pos1 );
+		// solicita comando ao jogador
+		printf("Insira um Comando: ");
+
+		descreve_monstro(ppMonstro, ppMapa, true);
+
+		ReleaseMutex(hMutexJogo);
+
+		scanf( "%s", sComando );
+
+		iAccao = aceita_comando_jogador((char*) sComando, ppJogador, ppMapa);
+
+		while (iAccao < 0)
+			{
+				// se o comando for inválido dá mensagem de erro
+				if (iAccao < 0)
+				{
+					printf("Comando inválido!\n");
+					system("pause");
+				}
+			}
+
+			// se a acção for igual ou superior a 100 é uma acção funcional
+			if (iAccao >= 100)
+			{
+				//comandos_funcionais(iAccao, ppJogador, pMonstro, ppMapa);
+			}
+			else
+			{
+				movimenta_jogador(iAccao, ppJogador);
+
+				//  apanha o tesouro
+				bool tesouro = apanha_tesouro(ppJogador, ppMapa);
+
+				if (tesouro == true)
+				{
+					//printf("Apanhou o tesouro! %d\n", jogador.flg_tem_tesouro);
+					//system("pause");
+				}
+
+			}
+	}
+	
+	//printf("Aqui-------------------------Jogador\n");
+	//Sleep(100000);
+
+	return 0;
+}
+
 // inicia jogo
 void inicia_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMapa[], bool blnSuperUser)
 {
 	//--------------------------------
 	// Inicia o jogo
 	//--------------------------------
+
+	hMutexJogo= CreateMutex( 
+		NULL,                       // default security attributes
+		FALSE,                      // initially not owned
+		NULL);                      // unnamed mutex
+
+	// variaveis do monstro
+	struct argThreadMonstro argTMonstro;
+	argTMonstro.pMapa = pMapa;
+	argTMonstro.pMonstro = pMonstro;
+	
+	// variaveis do jogador
+	struct argThreadJogador argTJogador;
+	argTJogador.pMapa = pMapa;
+	argTJogador.pJogador = pJogador;
+	argTJogador.pMonstro = pMonstro;
+
+
+	//	Movimentar Monstro
+	HANDLE tMonstro = CreateThread( 
+		NULL,              // default security attributes
+		0,                 // use default stack size  
+		threadMonstro,     // thread function 
+		&argTMonstro,      // argument to thread function 
+		0,                 // use default creation flags 
+		NULL);   // returns the thread identifier
+
+	//	Movimentar Jogador
+	HANDLE tJogador = CreateThread( 
+		NULL,              // default security attributes
+		0,                 // use default stack size  
+		threadJogador,     // thread function 
+		&argTJogador,      // argument to thread function 
+		0,                 // use default creation flags 
+		NULL);   // returns the thread identifier
 	
 	//Enquanto não for Fim de Jogo 
 	while (testa_fim_jogo(pJogador) == false)
 	{
-		int iAccao = -1;
+		WaitForSingleObject( hMutexJogo,INFINITE );
 
-		while (iAccao < 0)
-		{
-			//	Descrever a Localização do Jogador
-			descreve_status(pJogador, pMonstro, pMapa, blnSuperUser);
+		// valida se o monstro encontrou o jogador, se encontrou inicia a luta
+		valida_condicoes_luta(pJogador, pMonstro, pMapa, blnSuperUser);
 
-			// valida se o monstro encontrou o jogador, se encontrou inicia a luta
-			valida_condicoes_luta(pJogador, pMonstro, pMapa, blnSuperUser);
-		
-			//	Aceitar Comando do Jogador
-			char* sComando[2];
-			strcpy((char*) sComando, "");
-
-			// validar/imprimir comandos disponíveis
-			char* sComandosDisponiveis = valida_comandos_disponiveis(&pMapa[pJogador->localizacao]);
-			printf("%s\n", sComandosDisponiveis);
-
-			// solicita comando ao jogador
-			printf("Insira um Comando: ");
-			scanf( "%s", sComando );
-
-			iAccao = aceita_comando_jogador((char*) sComando, pJogador, pMapa);
-
-			// se o comando for inválido dá mensagem de erro
-			if (iAccao < 0)
-			{
-				printf("Comando inválido!\n");
-				system("pause");
-			}
-		}
-
-		// se a acção for igual ou superior a 100 é uma acção funcional
-		if (iAccao >= 100)
-		{
-			comandos_funcionais(iAccao, pJogador, pMonstro, pMapa);
-		}
-		else
-		{
-			//	Movimentar Monstro
-			movimenta_monstro(pMonstro, pMapa);
-
-			//	Movimentar Jogador
-			movimenta_jogador(iAccao, pJogador);
-
-			//  apanha o tesouro
-			bool tesouro = apanha_tesouro(pJogador, pMapa);
-
-			if (tesouro == true)
-			{
-				//printf("Apanhou o tesouro! %d\n", jogador.flg_tem_tesouro);
-				//system("pause");
-			}
-
-			// valida localizações para luta
-			valida_condicoes_luta(pJogador, pMonstro, pMapa, blnSuperUser);
-		}
+		ReleaseMutex(hMutexJogo);
 	}
 
 	// terminou o jogo
