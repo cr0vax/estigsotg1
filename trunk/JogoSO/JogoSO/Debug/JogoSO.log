@@ -1,4 +1,4 @@
-﻿Build started 08-06-2011 17:29:11.
+﻿Build started 08-06-2011 19:01:43.
      1>Project "D:\Utilizadores\Bruno\Dcoumentos\Escola\Ano 2\2 Semestre\SO\Trabalho de Grupo 2\JogoSO\JogoSO\JogoSO.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\JogoSO.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -28,4 +28,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.03
+Time Elapsed 00:00:02.61
