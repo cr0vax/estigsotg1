@@ -28,6 +28,10 @@
 
 HANDLE hMutexJogo;		// mutex para controlar o jogo
 
+#define PIPE_NAME "\\\\localhost\\pipe\\game" //cliente e servidor na mesma máquina
+#define BUF_SIZE 512
+#define MAX_MSG 512
+
 //-------------------------------------------------------------------------------------------------
 //	ESTRUTURAS
 //-------------------------------------------------------------------------------------------------
@@ -1226,6 +1230,71 @@ DWORD WINAPI threadJogador( LPVOID lpParam )
 	return 0;
 }
 
+void PrintErrorMsg(){
+	
+	char errorMsg[80];
+
+	if( FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM,
+                       0, 
+                       GetLastError(),
+                       0,
+                       errorMsg, 
+                       80, 
+                       NULL) )
+		printf( "%s\n", errorMsg );
+	system("pause");
+}
+
+int cria_pipe()
+{
+	//Inicialização das variáveis que irão permitir criar o named pipe
+	SECURITY_ATTRIBUTES secAttrib;
+	SECURITY_DESCRIPTOR* pSecDesc;
+	
+	pSecDesc = (SECURITY_DESCRIPTOR*)LocalAlloc(LPTR, 
+		SECURITY_DESCRIPTOR_MIN_LENGTH);
+	
+	InitializeSecurityDescriptor(pSecDesc,
+		SECURITY_DESCRIPTOR_REVISION);
+	
+	//(PACL) NULL permite o acesso de todos ao named pipe
+	SetSecurityDescriptorDacl(pSecDesc,TRUE,(PACL)NULL,FALSE);
+	
+	secAttrib.nLength = sizeof(SECURITY_ATTRIBUTES);
+	secAttrib.bInheritHandle = TRUE;
+	secAttrib.lpSecurityDescriptor = pSecDesc;
+
+	//Criação do named pipe
+	//Nota alterar em Project Properties o Character Set para Not Set (ASCII)
+	//caso contrário irá utilizar a versão UNICODE da função CreateNamedPipe 
+	HANDLE hPipe = CreateNamedPipe( 
+          PIPE_NAME,				// pipe name 
+          PIPE_ACCESS_DUPLEX,       // read/write access 
+          PIPE_TYPE_BYTE |			// byte type pipe 
+          PIPE_READMODE_BYTE |		// byte-read mode 
+          PIPE_WAIT,                // blocking mode 
+          PIPE_UNLIMITED_INSTANCES, // max. instances  
+          BUF_SIZE,                 // output buffer size 
+          BUF_SIZE,                 // input buffer size 
+          0,                        // client time-out 
+          &secAttrib );            // access to everyone
+
+      if (hPipe == INVALID_HANDLE_VALUE){ 
+          printf( "Servidor: Erro na criação do named pipe.\n" );
+		  PrintErrorMsg();
+		return -1;
+	  }
+
+	  /*DWORD availableData = 0;
+	  do{
+		  PeekNamedPipe( hPipe, NULL, 0, NULL, &availableData, NULL );
+	  }while( availableData == 0 );*/
+
+	  printf( "Servidor: vou conectar-me ao named pipe para esperar por uma ligação.\n" );
+
+	  ConnectNamedPipe( hPipe, NULL );
+}
+
 // inicia jogo
 void inicia_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celula pMapa[], bool blnSuperUser)
 {
@@ -1249,6 +1318,7 @@ void inicia_jogo(struct Jogador *pJogador, struct Monstro *pMonstro, struct Celu
 	argTJogador.pJogador = pJogador;
 	argTJogador.pMonstro = pMonstro;
 
+	cria_pipe();
 
 	//	Movimentar Monstro
 	HANDLE tMonstro = CreateThread( 
