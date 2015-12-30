@@ -1,0 +1,1 @@
+Primeiro trabalho de grupo da disciplina de Sistemas Operativos. Este trabalho tem como objectivo criar um jogo de aventura utilizando para isso a linguagem C.
